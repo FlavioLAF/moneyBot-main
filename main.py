@@ -35,7 +35,6 @@ class func:
                 pass    
         except TypeError:
             pass
-        
 #_______________________________SUB CLASSES FIM___________________________________
 
 #___________________________FUNÇÕES-INICIO________________________________________
@@ -53,9 +52,9 @@ def bol_ativo_fechado(_id, _sinal):
     try:
         if 'code' in _id:
             print('ATIVO FECHADO: ',_sinal[1])
-            bol_esperar_usuario_fechar()
+            return True
         else:
-            pass    
+            return False  
     except TypeError:
         pass
     
@@ -81,13 +80,12 @@ def time_frame(time):
 
 def resultado(_id):
     func.bol_ativo_fechado(_id)
-    if _id != "error":
-        while True:
-            ck, win = api.check_win_digital_v2(_id)
-            
-            if ck == True:  
-                break                  
-        return win
+    while True:
+        ck, win = api.check_win_digital_v2(_id)
+        
+        if ck == True:  
+            break                  
+    return win
 
 def sistema_sem_gale():
     while hora_minuto(lista) >= datetime.today().strftime('%H:%M'):
@@ -103,20 +101,19 @@ def sistema_sem_gale():
                 
                 bol, _id = api.buy_digital_spot(_sinal[1], amount, _sinal[3], time_frame(_sinal[0]))
                             
-                bol_ativo_fechado(_id, _sinal)
-                print('---------------ORDEM EXECUTADA----------------')
-                print('--------------'+lista[index]+'----------------')
-                print('---------------VERIFICANDO WIN----------------')        
-                
-                _res = resultado(_id)
-                if _res < 0:
-                    print('Loss: ', _res)
-                else: 
-                    print('Gain: ', _res)
+                if bol_ativo_fechado(_id, _sinal) == False:
+                    print('---------------ORDEM EXECUTADA----------------')
+                    print('--------------'+lista[index]+'----------------')
+                    print('---------------VERIFICANDO WIN----------------')        
+                    _res = resultado(_id)
+                    if _res < 0:
+                        print('Loss: ', _res)
+                    else: 
+                        print('Gain: ', _res)
             
                 lista[index] = 'XX;XXXXXX;XX:XX:XX;XXX'
                 print(lista[index])
-                print('---------------ORDEM FINALIZADA----------------', index)
+                print('---------------ORDEM FINALIZADA----------------')
                 print('\n \n')      
     else:
         print('============================================================')
@@ -138,36 +135,28 @@ def sistema_com_um_gale():
                 
                 bol, _id = api.buy_digital_spot(_sinal[1], amount, _sinal[3], time_frame(_sinal[0]))
                             
-                bol_ativo_fechado(_id,_sinal) 
-                print('---------------ORDEM EXECUTADA----------------')
-                print('--------------'+lista[index]+'----------------')
-                print('---------------VERIFICANDO WIN----------------')        
-                if _id != "error":
-                    while True:
-                        ck, win = api.check_win_digital_v2(_id)
-                        
-                        if ck == True:  
-                            break                  
-                    if win < 0:
-                        print('---------------LOSS de '+str(win)+', EXECUTANDO GALE 1----------------')
+                if bol_ativo_fechado(_id,_sinal) == False: 
+                    print('---------------ORDEM EXECUTADA----------------')
+                    print('--------------'+lista[index]+'----------------')
+                    print('---------------VERIFICANDO WIN----------------')        
+                    _res = resultado(_id)
+                    
+                    if _res < 0:
+                        print('---------------LOSS de '+str(_res)+', EXECUTANDO GALE 1----------------')
                         gale1 = amount * 2.2
                         _bol ,_id = api.buy_digital_spot(_sinal[1], gale1, _sinal[3], time_frame(_sinal[0]))
                         print('---------------VERIFICANDO GALE 1----------------')
                         
-                        bol_ativo_fechado(_id, _sinal)
-                        if _id != "error" :
-                            while True:
-                                ck, win = api.check_win_digital_v2(_id)
-
-                                if ck == True:  
-                                    break
-                                if win < 0:
-                                    print('_____________________HIT: -'+abs(amount+gale1)+'________________________')
-                                else:
-                                    print("Você ganhou "+str(win)+"$ no GALE 1")                   
+                        _res = resultado(_id)
+                        if _res < 0:
+                            print('_____________________HIT: -'+abs(amount+gale1)+'________________________')
+                        else:
+                            print('---------------WIN GALE 1 + '+str(_res)+'----------------')
                     else:
-                        print("Você ganhou: "+str(win)+"$")
+                        print('---------------WIN + '+str(_res)+'----------------')
+                        
                 lista[index] = 'XX;XXXXXX;XX:XX:XX;XXX'
+                print(lista[index])
                 print('---------------ORDEM FINALIZADA----------------')
                 print('\n \n')
     else:
@@ -190,58 +179,45 @@ def sistema_com_dois_gales():
                 
                 bol, _id = api.buy_digital_spot(_sinal[1], amount, _sinal[3], time_frame(_sinal[0]))
                             
-                bol_ativo_fechado() 
-                print('---------------ORDEM EXECUTADA----------------')
-                print('--------------'+lista[index]+'----------------')
-                print('---------------VERIFICANDO WIN----------------')        
-                if _id != "error":
-                    while True:
-                        ck, win = api.check_win_digital_v2(_id)
-                        
-                        if ck == True:  
-                            break                  
-                    if win < 0:
-                        print('---------------LOSS de '+str(win)+', EXECUTANDO GALE 1----------------')
+                if bol_ativo_fechado(_id, _sinal) == False: 
+                    print('---------------ORDEM EXECUTADA----------------')
+                    print('--------------'+lista[index]+'----------------')
+                    print('---------------VERIFICANDO WIN----------------')        
+                    
+                    _res = resultado(_id)
+                    if _res < 0:
+                        print('---------------LOSS de '+str(_res)+', EXECUTANDO GALE 1----------------')
                         gale1 = amount * 2.2
                         _bol ,_id = api.buy_digital_spot(_sinal[1], gale1, _sinal[3], time_frame(_sinal[0]))
                         print('---------------VERIFICANDO GALE 1----------------')
-                        bol_ativo_fechado()
-                        if _id != "error":
-                            while True:
-                                ck, win = api.check_win_digital_v2(_id)
-                                
-                                if ck == True:  
-                                    break                  
-                            if win < 0:
-                                print('---------------LOSS de '+str(win)+', EXECUTANDO GALE 2----------------')
-                                gale2 = amount * 2.2
-                                _bol ,_id = api.buy_digital_spot(_sinal[1], gale2, _sinal[3], time_frame(_sinal[0]))
-                                print('---------------VERIFICANDO GALE 2----------------')
-                                bol_ativo_fechado()
-                                if _id != "error":
-                                    while True:
-                                        ck, win = api.check_win_digital_v2(_id)
-                                        
-                                        if ck == True:  
-                                            break                  
-                                    if win < 0:
-                                        print('_____________________HIT: -'+abs(amount+gale1+gale2)+'________________________')
-                                    else:
-                                        print("Você ganhou "+str(win)+"$ no GALE 2")
+                        
+                        _res = resultado(_id)
+                        if _res < 0:
+                            gale2 = gale1 * 2.2
+                            _bol ,_id = api.buy_digital_spot(_sinal[1], gale2, _sinal[3], time_frame(_sinal[0]))
+                            print('---------------LOSS de '+str(_res)+', EXECUTANDO GALE 2----------------')
+                            print('---------------VERIFICANDO GALE 2----------------')
+                            
+                            _res = resultado(_id)
+                            if _res < 0:
+                                print('_____________________HIT: -'+abs(amount+gale1+gale2)+'________________________')
                             else:
-                                print("Você ganhou "+str(win)+"$ no GALE 1")
+                                print("Você ganhou "+str(_res)+"$ no GALE 2")
+                        
+                        else:
+                            print("Você ganhou "+str(_res)+"$ no GALE 1") 
+                    
                     else:
-                        print("Você ganhou "+str(win)+"$")
+                        print("Você ganhou "+str(_res)+"$")                       
             
-        lista[index] = 'XX;XXXXXX;XX:XX:XX;XXX'
-        print('---------------ORDEM FINALIZADA----------------')
-        print('\n \n')
+                lista[index] = 'XX;XXXXXX;XX:XX:XX;XXX'
+                print('---------------ORDEM FINALIZADA----------------')
+                print('\n \n')
     else:
         print('============================================================')
         print('__________________SISTEMA FINALIZADO________________________')
         print('============================================================')
-        os.system("pause")
-        
+        bol_esperar_usuario_fechar()       
 #___________________________FUNÇÕES-FIM________________________________________
 
-sistema_com_um_gale()
+sistema_sem_gale()
